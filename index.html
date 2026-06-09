@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>나의 이야기</title>
 <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Noto+Serif+KR:wght@300;400&display=swap" rel="stylesheet">
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
@@ -33,75 +39,31 @@ body { font-family: 'Gowun Dodum', 'Apple SD Gothic Neo', sans-serif; background
 .screen.hidden { opacity: 0; pointer-events: none; transform: translateY(12px); }
 
 /* ══════════════════════════════════════
-   SCREEN 1 : 사용자 선택
+   SCREEN 1 : 로그인
 ══════════════════════════════════════ */
-#screen-users { align-items: center; justify-content: center; }
-.users-inner { width: 100%; max-width: 440px; padding: 40px 24px; display: flex; flex-direction: column; align-items: center; gap: 32px; }
-.users-logo { display: flex; flex-direction: column; align-items: center; gap: 10px; }
-.logo-mark { width: 54px; height: 54px; border-radius: 50%; background: linear-gradient(135deg, #c4a882 0%, #8b6f5e 100%); display: flex; align-items: center; justify-content: center; font-size: 24px; color: white; }
-.logo-title { font-family: 'Noto Serif KR', serif; font-size: 22px; font-weight: 300; color: var(--text); }
-.logo-sub { font-size: 12px; color: var(--text-muted); }
-.users-label { font-size: 13px; color: var(--text-muted); align-self: flex-start; }
-.user-list { width: 100%; display: flex; flex-direction: column; gap: 10px; }
-.user-card { display: flex; align-items: center; gap: 14px; background: var(--surface); border: 0.5px solid var(--border); border-radius: 16px; padding: 16px 18px; cursor: pointer; transition: all 0.2s; user-select: none; }
-.user-card:hover { border-color: var(--accent); background: var(--surface2); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
-.user-card:active { transform: translateY(0); }
-.user-card-avatar { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #c4a882 0%, #8b6f5e 100%); display: flex; align-items: center; justify-content: center; font-size: 20px; color: white; flex-shrink: 0; }
-.user-card-info { flex: 1; }
-.user-card-name { font-size: 15px; color: var(--text); font-weight: 500; }
-.user-card-desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-.user-card-arrow { color: var(--text-muted); font-size: 18px; }
-.add-user-btn { width: 100%; padding: 13px; border: 0.5px dashed var(--border); border-radius: 16px; background: none; font-family: inherit; font-size: 13px; color: var(--text-muted); cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 6px; }
-.add-user-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--surface2); }
-.users-footer { font-size: 11px; color: var(--text-muted); text-align: center; line-height: 1.7; opacity: 0.7; }
+#screen-login { align-items: center; justify-content: center; }
+.login-inner { width: 100%; max-width: 360px; padding: 40px 24px; display: flex; flex-direction: column; align-items: center; gap: 36px; }
+.login-logo { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.logo-mark { width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #c4a882 0%, #8b6f5e 100%); display: flex; align-items: center; justify-content: center; font-size: 26px; color: white; }
+.logo-title { font-family: 'Noto Serif KR', serif; font-size: 24px; font-weight: 300; color: var(--text); }
+.logo-sub { font-size: 13px; color: var(--text-muted); text-align: center; line-height: 1.7; }
+.google-btn { display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px 20px; background: var(--surface); border: 0.5px solid var(--border); border-radius: 14px; cursor: pointer; font-family: inherit; font-size: 14px; color: var(--text); transition: all 0.2s; user-select: none; }
+.google-btn:hover { border-color: var(--accent); background: var(--surface2); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+.google-btn:active { transform: translateY(0); }
+.google-icon { width: 20px; height: 20px; flex-shrink: 0; }
+.login-loading { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-muted); }
+.login-footer { font-size: 11px; color: var(--text-muted); text-align: center; line-height: 1.7; opacity: 0.7; }
 
 /* ══════════════════════════════════════
-   SCREEN 2 : PIN 입력
-══════════════════════════════════════ */
-#screen-pin { align-items: center; justify-content: center; }
-.pin-inner { width: 100%; max-width: 340px; padding: 40px 24px; display: flex; flex-direction: column; align-items: center; gap: 28px; }
-.pin-back { align-self: flex-start; background: none; border: none; font-family: inherit; font-size: 13px; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 0; }
-.pin-back:hover { color: var(--text); }
-.pin-profile { display: flex; flex-direction: column; align-items: center; gap: 10px; }
-.pin-avatar { width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #c4a882 0%, #8b6f5e 100%); display: flex; align-items: center; justify-content: center; font-size: 26px; color: white; }
-.pin-username { font-size: 17px; color: var(--text); font-weight: 500; }
-.pin-prompt { font-size: 13px; color: var(--text-muted); text-align: center; line-height: 1.7; }
-.pin-dots { display: flex; gap: 14px; height: 40px; align-items: center; }
-.pin-dot { width: 13px; height: 13px; border-radius: 50%; border: 1.5px solid var(--accent); background: transparent; transition: background 0.15s; }
-.pin-dot.filled { background: var(--accent); }
-.pin-input-hidden { position: absolute; opacity: 0; pointer-events: none; }
-.pin-keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; }
-.key-btn { padding: 16px 10px; border: 0.5px solid var(--border); border-radius: 12px; background: var(--surface); font-family: inherit; font-size: 18px; color: var(--text); cursor: pointer; transition: all 0.12s; user-select: none; }
-.key-btn:hover { background: var(--surface2); border-color: var(--accent); }
-.key-btn:active { transform: scale(0.95); }
-.key-btn.del { font-size: 14px; color: var(--text-muted); }
-.key-btn.empty { border: none; background: none; cursor: default; pointer-events: none; }
-.pin-error { font-size: 12px; color: #c0392b; text-align: center; min-height: 18px; }
-.pin-confirm-hint { font-size: 11px; color: var(--text-muted); text-align: center; opacity: 0.8; }
-
-/* PIN 잠금 오버레이 */
-.pin-lock { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-.pin-lock-icon { font-size: 32px; }
-.pin-lock-msg { font-size: 13px; color: var(--text-muted); text-align: center; line-height: 1.7; }
-.pin-lock-timer { font-size: 22px; font-weight: 500; color: var(--accent); }
-
-/* 새 사용자 추가 패널 */
-.new-user-panel { width: 100%; display: flex; flex-direction: column; gap: 14px; }
-.new-user-input { width: 100%; padding: 12px 16px; border: 0.5px solid var(--border); border-radius: 12px; background: var(--surface2); font-family: inherit; font-size: 14px; color: var(--text); outline: none; transition: border-color 0.2s; }
-.new-user-input:focus { border-color: var(--accent); }
-.new-user-confirm { width: 100%; padding: 13px; border: none; border-radius: 12px; background: var(--user-bubble); color: var(--user-text); font-family: inherit; font-size: 14px; cursor: pointer; transition: opacity 0.15s; }
-.new-user-confirm:hover { opacity: 0.85; }
-.new-user-confirm:disabled { opacity: 0.3; cursor: not-allowed; }
-
-/* ══════════════════════════════════════
-   SCREEN 3 : 챗봇 (기존 UI)
+   SCREEN 2 : 챗봇
 ══════════════════════════════════════ */
 #screen-chat { display: flex; flex-direction: column; overflow: hidden; }
 .header { padding: 14px 20px 10px; border-bottom: 0.5px solid var(--border); background: var(--surface); display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; }
 .header-top { display: flex; align-items: center; justify-content: space-between; }
 .brand { display: flex; align-items: center; gap: 10px; }
-.avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #c4a882 0%, #8b6f5e 100%); display: flex; align-items: center; justify-content: center; font-size: 16px; color: white; flex-shrink: 0; cursor: pointer; }
+.avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #c4a882 0%, #8b6f5e 100%); display: flex; align-items: center; justify-content: center; font-size: 16px; color: white; flex-shrink: 0; cursor: pointer; overflow: hidden; }
 .avatar:hover { opacity: 0.8; }
+.avatar img { width: 100%; height: 100%; object-fit: cover; }
 .brand-name { font-family: 'Noto Serif KR', serif; font-size: 16px; font-weight: 400; color: var(--text); }
 .brand-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
 .header-actions { display: flex; align-items: center; gap: 8px; }
@@ -165,74 +127,46 @@ textarea::placeholder { color: var(--text-muted); }
 </head>
 <body>
 
-<!-- ══ SCREEN 1: 사용자 선택 ══ -->
-<div class="screen" id="screen-users">
-  <div class="users-inner">
-    <div class="users-logo">
+<!-- ══ SCREEN 1: 로그인 ══ -->
+<div class="screen" id="screen-login">
+  <div class="login-inner">
+    <div class="login-logo">
       <div class="logo-mark">✦</div>
       <div class="logo-title">나의 이야기</div>
-      <div class="logo-sub">누구로 접속할까요?</div>
+      <div class="logo-sub">친구처럼, 때로는 전문가처럼<br>언제 어디서든 함께해요</div>
     </div>
 
-    <div style="width:100%; display:flex; flex-direction:column; gap:10px;">
-      <div class="users-label">사용자 선택</div>
-      <div class="user-list" id="userList">
-        <!-- JS로 렌더링 -->
+    <div style="width:100%; display:flex; flex-direction:column; gap:12px;">
+      <button class="google-btn" id="googleSignInBtn" onclick="signInWithGoogle()">
+        <svg class="google-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+        </svg>
+        Google로 계속하기
+      </button>
+      <div class="login-loading hidden" id="loginLoading">
+        <div class="dot" style="animation-delay:0s"></div>
+        <div class="dot" style="animation-delay:.2s"></div>
+        <div class="dot" style="animation-delay:.4s"></div>
+        <span>로그인 중...</span>
       </div>
-      <button class="add-user-btn" onclick="showAddUser()">＋ 새 사용자 추가</button>
     </div>
 
-    <div class="users-footer">
-      각 사용자의 대화는 PIN 기반 AES-256으로 암호화됩니다.<br>
-      PIN 원문과 암호화 키는 어디에도 저장되지 않아요.
+    <div class="login-footer">
+      대화 내용은 본인의 Google 계정에만 저장돼요.<br>
+      다른 사용자는 접근할 수 없어요.
     </div>
   </div>
 </div>
 
-<!-- ══ SCREEN 2: PIN 입력 / 설정 ══ -->
-<div class="screen hidden" id="screen-pin">
-  <div class="pin-inner">
-    <button class="pin-back" onclick="backToUsers()">‹ 뒤로</button>
-    <div class="pin-profile">
-      <div class="pin-avatar" id="pinAvatar">✦</div>
-      <div class="pin-username" id="pinUsername">echo</div>
-    </div>
-
-    <!-- 잠금 상태 뷰 -->
-    <div class="pin-lock hidden" id="pinLockView">
-      <div class="pin-lock-icon">🔒</div>
-      <div class="pin-lock-msg">잠시 후 다시 시도해 주세요.</div>
-      <div class="pin-lock-timer" id="lockTimer">30</div>
-    </div>
-
-    <!-- 일반 PIN 뷰 -->
-    <div id="pinNormalView" style="width:100%; display:flex; flex-direction:column; align-items:center; gap:18px;">
-      <div class="pin-prompt" id="pinPrompt">PIN을 입력해 주세요</div>
-      <div class="pin-dots" id="pinDots">
-        <!-- JS로 렌더링 -->
-      </div>
-      <div class="pin-error" id="pinError"></div>
-      <div class="pin-keypad" id="pinKeypad">
-        <!-- JS로 렌더링 -->
-      </div>
-      <div class="pin-confirm-hint" id="pinConfirmHint"></div>
-    </div>
-
-    <!-- 새 사용자 추가 패널 (screen-users의 add-user는 여기서 처리) -->
-    <div class="new-user-panel hidden" id="newUserPanel">
-      <div class="pin-prompt" style="text-align:center;">새 사용자 이름을 입력해 주세요</div>
-      <input class="new-user-input" id="newUserNameInput" type="text" placeholder="이름" maxlength="16" oninput="onNewUserNameInput()">
-      <button class="new-user-confirm" id="newUserConfirmBtn" onclick="confirmNewUser()" disabled>다음 →</button>
-    </div>
-  </div>
-</div>
-
-<!-- ══ SCREEN 3: 챗봇 ══ -->
+<!-- ══ SCREEN 2: 챗봇 ══ -->
 <div class="screen hidden" id="screen-chat">
   <div class="header">
     <div class="header-top">
       <div class="brand">
-        <div class="avatar" id="chatAvatar" title="사용자 전환" onclick="logoutToUsers()">✦</div>
+        <div class="avatar" id="chatAvatar" title="로그아웃" onclick="confirmSignOut()">✦</div>
         <div>
           <div class="brand-name">나의 이야기</div>
           <div class="brand-sub" id="brandSub">불러오는 중...</div>
@@ -292,8 +226,7 @@ textarea::placeholder { color: var(--text-muted); }
   <div class="modal">
     <div class="modal-title">🔑 Anthropic API 키 설정</div>
     <div class="modal-sub">
-      API 키는 PIN 기반 AES-256으로 암호화되어 이 기기에만 저장됩니다.<br>
-      소스 코드에는 포함되지 않아요.<br>
+      API 키는 이 기기에만 저장돼요. 계정에 동기화되지 않아요.<br>
       <a href="https://console.anthropic.com" target="_blank" style="color:var(--accent);font-size:11px;">발급 → console.anthropic.com</a>
     </div>
     <input id="apiKeyInput" type="password"
@@ -328,194 +261,77 @@ textarea::placeholder { color: var(--text-muted); }
 
 <script>
 /* ════════════════════════════════════════════
+   Firebase 설정
+   👇 Firebase 콘솔에서 복사한 값으로 교체하세요
+════════════════════════════════════════════ */
+const firebaseConfig = {
+  apiKey: "AIzaSyCDPhqbdQvAWSfKQJwXZPh7CYYXTXDsjs4",
+  authDomain: "echo-personal-chatbot.firebaseapp.com",
+  projectId: "echo-personal-chatbot",
+  storageBucket: "echo-personal-chatbot.firebasestorage.app",
+  messagingSenderId: "830888320053",
+  appId: "1:830888320053:web:06665076e763a299c5657c"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+/* ════════════════════════════════════════════
    설정값
 ════════════════════════════════════════════ */
-let apiKey = '';  // 런타임 메모리에만 보관, 소스에 키 없음
+let apiKey = '';
 const COMPRESS_THRESHOLD = 14;
 const COMPRESS_BATCH = 6;
-const PIN_HASH_SALT = 'naeiyagi_v2_2024';  // PIN 해시용 고정 salt
-const PIN_MAX_ATTEMPTS = 5;
-const PIN_LOCK_SECONDS = 30;
-const PIN_LENGTH = 6;
-const PBKDF2_ITERATIONS = 100000;
-const LEGACY_STORAGE_KEY = 'naeiyagi_v2';
+const APIKEY_STORAGE_KEY = 'naeiyagi_apikey';
 
 /* ════════════════════════════════════════════
-   스토리지 키 헬퍼
+   인증
 ════════════════════════════════════════════ */
-const stateKey  = id => `naeiyagi_state_${id}`;
-const pinKey    = id => `naeiyagi_pin_${id}`;
-const lockKey   = id => `naeiyagi_lock_${id}`;
-const saltKey   = id => `naeiyagi_ksalt_${id}`;  // AES 키 파생용 per-user salt
-const apikeyStorageKey = id => `naeiyagi_apikey_${id}`;  // 암호화된 API 키
-const USERS_KEY = 'naeiyagi_users';
+let currentUser = null;
 
-/* ════════════════════════════════════════════
-   사용자 목록 관리
-════════════════════════════════════════════ */
-function loadUsers() {
+auth.onAuthStateChanged(async user => {
+  if (user) {
+    currentUser = user;
+    await enterChat();
+  } else {
+    currentUser = null;
+    showLoginScreen();
+  }
+});
+
+async function signInWithGoogle() {
+  document.getElementById('googleSignInBtn').style.display = 'none';
+  document.getElementById('loginLoading').classList.remove('hidden');
   try {
-    const raw = localStorage.getItem(USERS_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch(e) {}
-  const defaults = [{ id: 'echo', name: 'Echo', emoji: '✦', desc: '나의 이야기' }];
-  saveUsers(defaults);
-  return defaults;
-}
-function saveUsers(users) {
-  localStorage.setItem(USERS_KEY, JSON.stringify(users));
-}
-function addUser(name) {
-  const users = loadUsers();
-  const id = name.toLowerCase().replace(/\s+/g, '_') + '_' + Date.now();
-  const emojis = ['🌙','🌿','☁️','🦋','⭐','🌸','🍃','🔮'];
-  const emoji = emojis[Math.floor(Math.random() * emojis.length)];
-  users.push({ id, name, emoji, desc: '새 사용자' });
-  saveUsers(users);
-  return { id, name, emoji };
-}
-
-/* ════════════════════════════════════════════
-   PIN 해싱 (빠른 로그인 검증용)
-════════════════════════════════════════════ */
-async function hashPin(pin) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pin + PIN_HASH_SALT));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
-}
-async function savePinHash(userId, pin) {
-  localStorage.setItem(pinKey(userId), await hashPin(pin));
-}
-async function verifyPinHash(userId, pin) {
-  const stored = localStorage.getItem(pinKey(userId));
-  if (!stored) return null;
-  return (await hashPin(pin)) === stored;
-}
-function hasPinSet(userId) {
-  return !!localStorage.getItem(pinKey(userId));
-}
-
-/* ════════════════════════════════════════════
-   AES-256-GCM 암호화 (PIN → PBKDF2 → AES키)
-════════════════════════════════════════════ */
-
-// 랜덤 salt 생성 (최초 PIN 설정 시 1회)
-function generateSalt() {
-  return btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(16))));
-}
-
-// PIN + salt → AES-256-GCM CryptoKey (메모리 전용, 비추출 불가)
-async function deriveAesKey(pin, saltB64) {
-  const saltBytes = Uint8Array.from(atob(saltB64), c => c.charCodeAt(0));
-  const keyMaterial = await crypto.subtle.importKey(
-    'raw', new TextEncoder().encode(pin), 'PBKDF2', false, ['deriveKey']
-  );
-  return crypto.subtle.deriveKey(
-    { name: 'PBKDF2', salt: saltBytes, iterations: PBKDF2_ITERATIONS, hash: 'SHA-256' },
-    keyMaterial,
-    { name: 'AES-GCM', length: 256 },
-    false,          // 키 원문 추출 불가
-    ['encrypt', 'decrypt']
-  );
-}
-
-// AES-GCM 암호화 → { iv, ct } (base64)
-async function encryptData(key, data) {
-  const iv = crypto.getRandomValues(new Uint8Array(12));
-  const ct = await crypto.subtle.encrypt(
-    { name: 'AES-GCM', iv },
-    key,
-    new TextEncoder().encode(JSON.stringify(data))
-  );
-  return {
-    iv: btoa(String.fromCharCode(...iv)),
-    ct: btoa(String.fromCharCode(...new Uint8Array(ct)))
-  };
-}
-
-// AES-GCM 복호화 → JS 객체
-async function decryptData(key, enc) {
-  const iv = Uint8Array.from(atob(enc.iv), c => c.charCodeAt(0));
-  const ct = Uint8Array.from(atob(enc.ct), c => c.charCodeAt(0));
-  const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct);
-  return JSON.parse(new TextDecoder().decode(plain));
-}
-
-// 미암호화 기존 데이터를 첫 로그인 시 암호화
-async function encryptExistingIfNeeded() {
-  const raw = localStorage.getItem(stateKey(currentUserId));
-  if (!raw || !cryptoKey) return;
-  try {
-    const parsed = JSON.parse(raw);
-    if (!parsed.ct) {  // 암호화 안 된 평문 데이터
-      const enc = await encryptData(cryptoKey, parsed);
-      localStorage.setItem(stateKey(currentUserId), JSON.stringify(enc));
+    const provider = new firebase.auth.GoogleAuthProvider();
+    await auth.signInWithPopup(provider);
+    // onAuthStateChanged가 enterChat() 호출
+  } catch (e) {
+    document.getElementById('googleSignInBtn').style.display = '';
+    document.getElementById('loginLoading').classList.add('hidden');
+    if (e.code !== 'auth/popup-closed-by-user') {
+      alert('로그인 중 오류가 발생했어요: ' + e.message);
     }
-  } catch(e) {}
-}
-
-/* ════════════════════════════════════════════
-   API 키 관리 (AES 암호화 저장)
-════════════════════════════════════════════ */
-async function saveApiKey(key) {
-  apiKey = key;
-  if (cryptoKey) {
-    const enc = await encryptData(cryptoKey, { k: key });
-    localStorage.setItem(apikeyStorageKey(currentUserId), JSON.stringify(enc));
   }
 }
-async function loadApiKey() {
-  const raw = localStorage.getItem(apikeyStorageKey(currentUserId));
-  if (!raw || !cryptoKey) { apiKey = ''; return; }
-  try {
-    const parsed = JSON.parse(raw);
-    const data = await decryptData(cryptoKey, parsed);
-    apiKey = data.k || '';
-  } catch(e) { apiKey = ''; }
+
+function confirmSignOut() {
+  if (!confirm('로그아웃 할까요?\n이 기기의 대화 화면에서 나갑니다.')) return;
+  auth.signOut();
 }
 
-/* ════════════════════════════════════════════
-   잠금 관리
-════════════════════════════════════════════ */
-function getLockInfo(userId) {
-  try { return JSON.parse(localStorage.getItem(lockKey(userId))) || {}; } catch(e) {}
-  return { attempts: 0, lockedUntil: 0 };
-}
-function saveLockInfo(userId, info) {
-  localStorage.setItem(lockKey(userId), JSON.stringify(info));
-}
-function isLocked(userId) {
-  return (getLockInfo(userId).lockedUntil || 0) > Date.now();
-}
-function recordFailedAttempt(userId) {
-  const info = getLockInfo(userId);
-  info.attempts = (info.attempts || 0) + 1;
-  if (info.attempts >= PIN_MAX_ATTEMPTS) {
-    info.lockedUntil = Date.now() + PIN_LOCK_SECONDS * 1000;
-    info.attempts = 0;
-  }
-  saveLockInfo(userId, info);
-  return info;
-}
-function resetLock(userId) {
-  saveLockInfo(userId, { attempts: 0, lockedUntil: 0 });
-}
-
-/* ════════════════════════════════════════════
-   기존 데이터 마이그레이션 (→ echo 계정)
-════════════════════════════════════════════ */
-function migrateIfNeeded() {
-  const legacyData = localStorage.getItem(LEGACY_STORAGE_KEY);
-  const echoStateExists = localStorage.getItem(stateKey('echo'));
-  if (legacyData && !echoStateExists) {
-    localStorage.setItem(stateKey('echo'), legacyData);
-  }
+function showLoginScreen() {
+  document.getElementById('googleSignInBtn').style.display = '';
+  document.getElementById('loginLoading').classList.add('hidden');
+  showScreen('screen-login');
 }
 
 /* ════════════════════════════════════════════
    화면 전환
 ════════════════════════════════════════════ */
 function showScreen(id) {
-  ['screen-users','screen-pin','screen-chat'].forEach(sid => {
+  ['screen-login', 'screen-chat'].forEach(sid => {
     const el = document.getElementById(sid);
     if (sid === id) el.classList.remove('hidden');
     else el.classList.add('hidden');
@@ -523,309 +339,59 @@ function showScreen(id) {
 }
 
 /* ════════════════════════════════════════════
-   SCREEN 1 : 사용자 선택
-════════════════════════════════════════════ */
-function renderUserList() {
-  const users = loadUsers();
-  const list = document.getElementById('userList');
-  list.innerHTML = '';
-  users.forEach(u => {
-    const card = document.createElement('div');
-    card.className = 'user-card';
-    const raw = localStorage.getItem(stateKey(u.id));
-    let desc = '아직 대화가 없어요';
-    if (raw) {
-      try {
-        const parsed = JSON.parse(raw);
-        if (parsed.ct) {
-          desc = '🔒 암호화된 대화 기록';
-        } else {
-          const n = Math.floor((parsed.totalCount || 0) / 2);
-          desc = n > 0 ? `${n}번의 대화 기록` : '아직 대화가 없어요';
-        }
-      } catch(e) {}
-    }
-    card.innerHTML = `
-      <div class="user-card-avatar">${u.emoji}</div>
-      <div class="user-card-info">
-        <div class="user-card-name">${u.name}</div>
-        <div class="user-card-desc">${desc}</div>
-      </div>
-      <div class="user-card-arrow">›</div>`;
-    card.onclick = () => openPinScreen(u);
-    list.appendChild(card);
-  });
-}
-
-function showAddUser() {
-  currentUserId = null;
-  currentUserObj = null;
-  document.getElementById('pinAvatar').textContent = '＋';
-  document.getElementById('pinUsername').textContent = '새 사용자';
-  document.getElementById('pinNormalView').classList.add('hidden');
-  document.getElementById('pinLockView').classList.add('hidden');
-  document.getElementById('newUserPanel').classList.remove('hidden');
-  document.getElementById('newUserNameInput').value = '';
-  document.getElementById('newUserConfirmBtn').disabled = true;
-  showScreen('screen-pin');
-}
-
-/* ════════════════════════════════════════════
-   SCREEN 2 : PIN
-════════════════════════════════════════════ */
-let currentUserId = null;
-let currentUserObj = null;
-let cryptoKey = null;   // ← AES 키: 메모리에만 존재, 로그아웃 시 소거
-let pinBuffer = '';
-let pinMode = 'verify';
-let pendingSetupPin = '';
-let lockTimerInterval = null;
-
-function openPinScreen(user) {
-  currentUserId = user.id;
-  currentUserObj = user;
-  cryptoKey = null;
-  pinBuffer = '';
-  pendingSetupPin = '';
-
-  document.getElementById('pinAvatar').textContent = user.emoji;
-  document.getElementById('pinUsername').textContent = user.name;
-  document.getElementById('newUserPanel').classList.add('hidden');
-  document.getElementById('pinNormalView').classList.remove('hidden');
-  document.getElementById('pinLockView').classList.add('hidden');
-  document.getElementById('pinError').textContent = '';
-  setPinLoading(false);
-
-  if (isLocked(user.id)) {
-    showLockView(user.id);
-  } else if (!hasPinSet(user.id)) {
-    pinMode = 'setup';
-    document.getElementById('pinPrompt').textContent = `PIN ${PIN_LENGTH}자리를 설정해 주세요`;
-    document.getElementById('pinConfirmHint').textContent = 'PIN으로 대화 내용이 AES-256 암호화됩니다';
-  } else {
-    pinMode = 'verify';
-    document.getElementById('pinPrompt').textContent = 'PIN을 입력해 주세요';
-    document.getElementById('pinConfirmHint').textContent = '';
-  }
-  renderPinDots();
-  renderKeypad();
-  showScreen('screen-pin');
-}
-
-// 키패드 잠금 (키 파생 중 입력 방지)
-function setPinLoading(on) {
-  const keypad = document.getElementById('pinKeypad');
-  if (on) {
-    keypad.style.opacity = '0.4';
-    keypad.style.pointerEvents = 'none';
-    document.getElementById('pinPrompt').textContent = '처리 중...';
-  } else {
-    keypad.style.opacity = '';
-    keypad.style.pointerEvents = '';
-  }
-}
-
-function showLockView(userId) {
-  document.getElementById('pinNormalView').classList.add('hidden');
-  document.getElementById('pinLockView').classList.remove('hidden');
-  startLockTimer(userId);
-}
-
-function startLockTimer(userId) {
-  if (lockTimerInterval) clearInterval(lockTimerInterval);
-  const update = () => {
-    const info = getLockInfo(userId);
-    const remaining = Math.ceil((info.lockedUntil - Date.now()) / 1000);
-    if (remaining <= 0) {
-      clearInterval(lockTimerInterval);
-      document.getElementById('pinLockView').classList.add('hidden');
-      document.getElementById('pinNormalView').classList.remove('hidden');
-      document.getElementById('pinError').textContent = '';
-    } else {
-      document.getElementById('lockTimer').textContent = remaining + 's';
-    }
-  };
-  update();
-  lockTimerInterval = setInterval(update, 500);
-}
-
-function renderPinDots() {
-  const container = document.getElementById('pinDots');
-  container.innerHTML = '';
-  for (let i = 0; i < PIN_LENGTH; i++) {
-    const d = document.createElement('div');
-    d.className = 'pin-dot' + (i < pinBuffer.length ? ' filled' : '');
-    container.appendChild(d);
-  }
-}
-
-function renderKeypad() {
-  const pad = document.getElementById('pinKeypad');
-  pad.innerHTML = '';
-  ['1','2','3','4','5','6','7','8','9','','0','⌫'].forEach(k => {
-    const btn = document.createElement('button');
-    if (!k) {
-      btn.className = 'key-btn empty';
-    } else if (k === '⌫') {
-      btn.className = 'key-btn del';
-      btn.textContent = '⌫';
-      btn.onclick = () => pinInput('DEL');
-    } else {
-      btn.className = 'key-btn';
-      btn.textContent = k;
-      btn.onclick = () => pinInput(k);
-    }
-    pad.appendChild(btn);
-  });
-}
-
-function pinInput(key) {
-  if (key === 'DEL') {
-    pinBuffer = pinBuffer.slice(0, -1);
-  } else {
-    if (pinBuffer.length >= PIN_LENGTH) return;
-    pinBuffer += key;
-  }
-  renderPinDots();
-  document.getElementById('pinError').textContent = '';
-  if (pinBuffer.length === PIN_LENGTH) processPinComplete();
-}
-
-async function processPinComplete() {
-  const pin = pinBuffer;
-  pinBuffer = '';
-  renderPinDots();
-
-  if (pinMode === 'setup') {
-    pendingSetupPin = pin;
-    pinMode = 'setup_confirm';
-    document.getElementById('pinPrompt').textContent = 'PIN을 한 번 더 입력해 주세요';
-    document.getElementById('pinConfirmHint').textContent = '동일한 PIN을 입력해 주세요';
-
-  } else if (pinMode === 'setup_confirm') {
-    if (pin !== pendingSetupPin) {
-      document.getElementById('pinError').textContent = 'PIN이 일치하지 않아요. 다시 시작해 주세요.';
-      pendingSetupPin = '';
-      pinMode = 'setup';
-      document.getElementById('pinPrompt').textContent = `PIN ${PIN_LENGTH}자리를 설정해 주세요`;
-      document.getElementById('pinConfirmHint').textContent = 'PIN으로 대화 내용이 AES-256 암호화됩니다';
-    } else {
-      setPinLoading(true);
-      // PIN 해시 저장 + salt 생성 + AES 키 파생
-      await savePinHash(currentUserId, pin);
-      let userSalt = localStorage.getItem(saltKey(currentUserId));
-      if (!userSalt) {
-        userSalt = generateSalt();
-        localStorage.setItem(saltKey(currentUserId), userSalt);
-      }
-      cryptoKey = await deriveAesKey(pin, userSalt);
-      await encryptExistingIfNeeded();  // 기존 평문 데이터 있으면 암호화
-      pendingSetupPin = '';
-      setPinLoading(false);
-      await enterChat();
-    }
-
-  } else { // verify
-    // 1단계: 빠른 해시 검증
-    const hashOk = await verifyPinHash(currentUserId, pin);
-    if (!hashOk) {
-      const info = recordFailedAttempt(currentUserId);
-      if (isLocked(currentUserId)) {
-        showLockView(currentUserId);
-      } else {
-        const remaining = PIN_MAX_ATTEMPTS - (info.attempts || 0);
-        document.getElementById('pinError').textContent =
-          `PIN이 틀렸어요. 남은 시도: ${remaining}회`;
-      }
-      return;
-    }
-    // 2단계: AES 키 파생 (PBKDF2, 약간의 시간 소요)
-    setPinLoading(true);
-    let userSalt = localStorage.getItem(saltKey(currentUserId));
-    if (!userSalt) {
-      // 암호화 기능 추가 이전에 PIN만 설정한 사용자 — salt 신규 생성
-      userSalt = generateSalt();
-      localStorage.setItem(saltKey(currentUserId), userSalt);
-    }
-    cryptoKey = await deriveAesKey(pin, userSalt);
-    await encryptExistingIfNeeded();  // 평문 데이터 있으면 이번에 암호화
-    resetLock(currentUserId);
-    setPinLoading(false);
-    await enterChat();
-  }
-}
-
-function backToUsers() {
-  if (lockTimerInterval) clearInterval(lockTimerInterval);
-  cryptoKey = null;
-  pinBuffer = '';
-  pendingSetupPin = '';
-  renderUserList();
-  showScreen('screen-users');
-}
-
-/* 새 사용자 추가 */
-function onNewUserNameInput() {
-  document.getElementById('newUserConfirmBtn').disabled =
-    !document.getElementById('newUserNameInput').value.trim();
-}
-function confirmNewUser() {
-  const name = document.getElementById('newUserNameInput').value.trim();
-  if (!name) return;
-  const user = addUser(name);
-  document.getElementById('newUserPanel').classList.add('hidden');
-  openPinScreen(user);
-}
-
-/* ════════════════════════════════════════════
-   SCREEN 3 : 챗봇 진입
+   챗봇 진입
 ════════════════════════════════════════════ */
 async function enterChat() {
-  if (lockTimerInterval) clearInterval(lockTimerInterval);
-  await Promise.all([loadChatState(), loadApiKey()]);
-  document.getElementById('chatAvatar').textContent = currentUserObj.emoji;
+  loadApiKey();
+  await loadChatState();
+
+  // 프로필 사진 표시
+  const avatar = document.getElementById('chatAvatar');
+  if (currentUser.photoURL) {
+    avatar.innerHTML = `<img src="${currentUser.photoURL}" alt="profile">`;
+  } else {
+    avatar.textContent = (currentUser.displayName || '나')[0];
+  }
+
   showScreen('screen-chat');
   document.getElementById('input').focus();
 }
 
-function logoutToUsers() {
-  if (!confirm('사용자 선택 화면으로 돌아갈까요?')) return;
-  cryptoKey = null;  // ← AES 키 메모리에서 즉시 소거
-  apiKey = '';       // ← API 키도 메모리에서 소거
-  currentUserId = null;
-  currentUserObj = null;
-  state = { summary: '', recentMessages: [], totalCount: 0, compressCount: 0 };
-  document.getElementById('messages').innerHTML = getWelcomeHTML('안녕하세요 👋');
-  renderUserList();
-  showScreen('screen-users');
+/* ════════════════════════════════════════════
+   API 키 관리 (localStorage, 기기별 보관)
+════════════════════════════════════════════ */
+function loadApiKey() {
+  apiKey = localStorage.getItem(APIKEY_STORAGE_KEY) || '';
+}
+function saveApiKey(key) {
+  apiKey = key;
+  localStorage.setItem(APIKEY_STORAGE_KEY, key);
 }
 
 /* ════════════════════════════════════════════
-   챗봇 상태 관리 (암호화/복호화 포함)
+   대화 상태 – Firestore
 ════════════════════════════════════════════ */
 const defaultState = () => ({ summary: '', recentMessages: [], totalCount: 0, compressCount: 0 });
-
 let state = defaultState();
 let currentMode = 'blend';
 let isLoading = false;
 
 async function loadChatState() {
-  const raw = localStorage.getItem(stateKey(currentUserId));
-  if (!raw) {
-    state = defaultState();
-  } else {
-    try {
-      const parsed = JSON.parse(raw);
-      if (parsed.ct && parsed.iv) {
-        // 암호화된 데이터 → 복호화
-        state = cryptoKey ? await decryptData(cryptoKey, parsed) : defaultState();
-      } else {
-        // 아직 평문 (마이그레이션 전)
-        state = parsed;
-      }
-    } catch(e) {
+  try {
+    const doc = await db.collection('users').doc(currentUser.uid).get();
+    if (doc.exists) {
+      const data = doc.data();
+      state = {
+        summary: data.summary || '',
+        recentMessages: data.recentMessages || [],
+        totalCount: data.totalCount || 0,
+        compressCount: data.compressCount || 0
+      };
+    } else {
       state = defaultState();
     }
+  } catch (e) {
+    state = defaultState();
   }
   updateMemBadge();
   document.getElementById('brandSub').textContent = state.totalCount > 0
@@ -837,11 +403,17 @@ async function loadChatState() {
 }
 
 async function saveChatState() {
-  if (cryptoKey) {
-    const enc = await encryptData(cryptoKey, state);
-    localStorage.setItem(stateKey(currentUserId), JSON.stringify(enc));
-  } else {
-    localStorage.setItem(stateKey(currentUserId), JSON.stringify(state));
+  if (!currentUser) return;
+  try {
+    await db.collection('users').doc(currentUser.uid).set({
+      summary: state.summary,
+      recentMessages: state.recentMessages,
+      totalCount: state.totalCount,
+      compressCount: state.compressCount,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  } catch (e) {
+    console.error('저장 오류:', e);
   }
   updateMemBadge();
 }
@@ -861,7 +433,7 @@ function updateMemBadge() {
 }
 
 /* ════════════════════════════════════════════
-   챗봇 UI 헬퍼
+   챗봇 UI
 ════════════════════════════════════════════ */
 function getWelcomeHTML(title) {
   return `<div class="welcome" id="welcome">
@@ -1013,7 +585,6 @@ function showApiKeyModal() {
   const input = document.getElementById('apiKeyInput');
   input.value = apiKey || '';
   document.getElementById('apiKeySaveBtn').disabled = !input.value.trim();
-  // 키 없으면 취소 불가
   document.getElementById('apiKeyCancelBtn').style.display = apiKey ? '' : 'none';
   document.getElementById('apiKeyModal').style.display = 'flex';
   setTimeout(() => input.focus(), 50);
@@ -1021,12 +592,11 @@ function showApiKeyModal() {
 function closeApiKeyModal() {
   document.getElementById('apiKeyModal').style.display = 'none';
 }
-async function confirmApiKey() {
+function confirmApiKey() {
   const val = document.getElementById('apiKeyInput').value.trim();
   if (!val) return;
-  await saveApiKey(val);
+  saveApiKey(val);
   closeApiKeyModal();
-  // 대화 입력창으로 포커스
   document.getElementById('input').focus();
 }
 
@@ -1104,13 +674,6 @@ const MODES = {
 한국어만 사용하세요.`
   }
 };
-
-/* ════════════════════════════════════════════
-   앱 초기화
-════════════════════════════════════════════ */
-migrateIfNeeded();
-renderUserList();
-showScreen('screen-users');
 </script>
 </body>
 </html>
