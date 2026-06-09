@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>나의 이야기</title>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Noto+Serif+KR:wght@300;400&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #faf8f4; --surface: #ffffff; --surface2: #f5f2ec;
+  --border: rgba(0,0,0,0.08); --text: #2c2820; --text-muted: #8c7f70;
+  --accent: #8b6f5e; --accent-light: #e8ddd5;
+  --user-bubble: #3d3530; --user-text: #faf8f4;
+  --ai-bubble: #ffffff; --ai-border: rgba(0,0,0,0.07);
+  --tag-bg: #f0ebe4; --tag-text: #6b5a4e;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1e1a17; --surface: #2a2520; --surface2: #231f1b;
+    --border: rgba(255,255,255,0.08); --text: #f0ebe4; --text-muted: #8c7f70;
+    --accent: #c4a882; --accent-light: #3a2e26;
+    --user-bubble: #c4a882; --user-text: #1e1a17;
+    --ai-bubble: #2a2520; --ai-border: rgba(255,255,255,0.06);
+    --tag-bg: #3a2e26; --tag-text: #c4a882;
+  }
+}
+html, body { height: 100%; }
+body { font-family: 'Gowun Dodum', 'Apple SD Gothic Neo', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
+
+/* ── 공통 화면 래퍼 ── */
+.screen { position: fixed; inset: 0; display: flex; flex-direction: column; background: var(--bg); transition: opacity 0.3s, transform 0.3s; }
+.screen.hidden { opacity: 0; pointer-events: none; transform: translateY(12px); }
+
+/* ══════════════════════════════════════
+   SCREEN 1 : 사용자 선택
+══════════════════════════════════════ */
+#screen-users { align-items: center; justify-content: center; }
+.users-inner { width: 100%; max-width: 440px; padding: 40px 24px; display: flex; flex-direction: column; align-items: center; gap: 32px; }
+.users-logo { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.logo-mark { width: 54px; height: 54px; border-radius: 50%; background: linear-gradient(135deg, #c4a882 0%, #8b6f5e 100%); display: flex; align-items: center; justify-content: center; font-size: 24px; color: white; }
+.logo-title { font-family: 'Noto Serif KR', serif; font-size: 22px; font-weight: 300; color: var(--text); }
+.logo-sub { font-size: 12px; color: var(--text-muted); }
+.users-label { font-size: 13px; color: var(--text-muted); align-self: flex-start; }
+.user-list { width: 100%; display: flex; flex-direction: column; gap: 10px; }
+.user-card { display: flex; align-items: center; gap: 14px; background: var(--surface); border: 0.5px solid var(--border); border-radius: 16px; padding: 16px 18px; cursor: pointer; transition: all 0.2s; user-select: none; }
+.user-card:hover { border-color: var(--accent); background: var(--surface2); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+.user-card:active { transform: translateY(0); }
+.user-card-avatar { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #c4a882 0%, #8b6f5e 100%); display: flex; align-items: center; justify-content: center; font-size: 20px; color: white; flex-shrink: 0; }
+.user-card-info { flex: 1; }
+.user-card-name { font-size: 15px; color: var(--text); font-weight: 500; }
+.user-card-desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.user-card-arrow { color: var(--text-muted); font-size: 18px; }
+.add-user-btn { width: 100%; padding: 13px; border: 0.5px dashed var(--border); border-radius: 16px; background: none; font-family: inherit; font-size: 13px; color: var(--text-muted); cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+.add-user-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--surface2); }
+.users-footer { font-size: 11px; color: var(--text-muted); text-align: center; line-height: 1.7; opacity: 0.7; }
+
+/* ══════════════════════════════════════
+   SCREEN 2 : PIN 입력
+══════════════════════════════════════ */
+#screen-pin { align-items: center; justify-content: center; }
+.pin-inner { width: 100%; max-width: 340px; padding: 40px 24px; display: flex; flex-direction: column; align-items: center; gap: 28px; }
+.pin-back { align-self: flex-start; background: none; border: none; font-family: inherit; font-size: 13px; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 0; }
+.pin-back:hover { color: var(--text); }
+.pin-profile { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.pin-avatar { width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #c4a882 0%, #8b6f5e 100%); display: flex; align-items: center; justify-content: center; font-size: 26px; color: white; }
+.pin-username { font-size: 17px; color: var(--text); font-weight: 500; }
+.pin-prompt { font-size: 13px; color: var(--text-muted); text-align: center; line-height: 1.7; }
+.pin-dots { display: flex; gap: 14px; height: 40px; align-items: center; }
+.pin-dot { width: 13px; height: 13px; border-radius: 50%; border: 1.5px solid var(--accent); background: transparent; transition: background 0.15s; }
+.pin-dot.filled { background: var(--accent); }
+.pin-input-hidden { position: absolute; opacity: 0; pointer-events: none; }
+.pin-keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; }
+.key-btn { padding: 16px 10px; border: 0.5px solid var(--border); border-radius: 12px; background: var(--surface); font-family: inherit; font-size: 18px; color: var(--text); cursor: pointer; transition: all 0.12s; user-select: none; }
+.key-btn:hover { background: var(--surface2); border-color: var(--accent); }
+.key-btn:active { transform: scale(0.95); }
+.key-btn.del { font-size: 14px; color: var(--text-muted); }
+.key-btn.empty { border: none; background: none; cursor: default; pointer-events: none; }
+.pin-error { font-size: 12px; color: #c0392b; text-align: center; min-height: 18px; }
+.pin-confirm-hint { font-size: 11px; color: var(--text-muted); text-align: center; opacity: 0.8; }
+
+/* PIN 잠금 오버레이 */
+.pin-lock { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.pin-lock-icon { font-size: 32px; }
+.pin-lock-msg { font-size: 13px; color: var(--text-muted); text-align: center; line-height: 1.7; }
+.pin-lock-timer { font-size: 22px; font-weight: 500; color: var(--accent); }
+
+/* 새 사용자 추가 패널 */
+.new-user-panel { width: 100%; display: flex; flex-direction: column; gap: 14px; }
+.new-user-input { width: 100%; padding: 12px 16px; border: 0.5px solid var(--border); border-radius: 12px; background: var(--surface2); font-family: inherit; font-size: 14px; color: var(--text); outline: none; transition: border-color 0.2s; }
+.new-user-input:focus { border-color: var(--accent); }
+.new-user-confirm { width: 100%; padding: 13px; border: none; border-radius: 12px; background: var(--user-bubble); color: var(--user-text); font-family: inherit; font-size: 14px; cursor: pointer; transition: opacity 0.15s; }
+.new-user-confirm:hover { opacity: 0.85; }
+.new-user-confirm:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* ══════════════════════════════════════
+   SCREEN 3 : 챗봇 (기존 UI)
+══════════════════════════════════════ */
+#screen-chat { display: flex; flex-direction: column; overflow: hidden; }
+.header { padding: 14px 20px 10px; border-bottom: 0.5px solid var(--border); background: var(--surface); display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; }
+.header-top { display: flex; align-items: center; justify-content: space-between; }
+.brand { display: flex; align-items: center; gap: 10px; }
+.avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #c4a882 0%, #8b6f5e 100%); display: flex; align-items: center; justify-content: center; font-size: 16px; color: white; flex-shrink: 0; cursor: pointer; }
+.avatar:hover { opacity: 0.8; }
+.brand-name { font-family: 'Noto Serif KR', serif; font-size: 16px; font-weight: 400; color: var(--text); }
+.brand-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.header-actions { display: flex; align-items: center; gap: 8px; }
+.mem-badge { display: flex; align-items: center; gap: 5px; background: var(--tag-bg); color: var(--tag-text); font-size: 11px; padding: 4px 10px; border-radius: 12px; cursor: pointer; border: none; font-family: inherit; transition: all 0.15s; }
+.mem-badge:hover { filter: brightness(0.95); }
+.mem-dot { width: 6px; height: 6px; border-radius: 50%; background: #c4a882; flex-shrink: 0; }
+.mem-dot.active { background: #6b9e6b; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+.clear-btn { background: none; border: 0.5px solid var(--border); border-radius: 6px; padding: 5px 12px; font-size: 12px; color: var(--text-muted); cursor: pointer; font-family: inherit; transition: all 0.15s; }
+.clear-btn:hover { background: var(--surface2); color: var(--text); }
+.mode-bar { display: flex; gap: 6px; flex-wrap: wrap; }
+.mode-btn { border: 0.5px solid var(--border); background: none; border-radius: 20px; padding: 5px 13px; font-size: 12px; color: var(--text-muted); cursor: pointer; font-family: inherit; transition: all 0.2s; white-space: nowrap; }
+.mode-btn:hover { background: var(--accent-light); color: var(--text); }
+.mode-btn.active { background: var(--user-bubble); color: var(--user-text); border-color: var(--user-bubble); }
+.messages { flex: 1; overflow-y: auto; padding: 20px 18px; display: flex; flex-direction: column; gap: 16px; }
+.messages::-webkit-scrollbar { width: 4px; }
+.messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.welcome { text-align: center; padding: 40px 16px; color: var(--text-muted); }
+.welcome-title { font-family: 'Noto Serif KR', serif; font-size: 20px; font-weight: 300; color: var(--text); margin-bottom: 8px; }
+.welcome-desc { font-size: 14px; line-height: 1.7; margin-bottom: 20px; }
+.starter-chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.chip { background: var(--tag-bg); color: var(--tag-text); border: none; border-radius: 16px; padding: 8px 16px; font-size: 13px; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+.chip:hover { filter: brightness(0.95); transform: translateY(-1px); }
+.msg-row { display: flex; gap: 8px; align-items: flex-start; max-width: 760px; margin: 0 auto; width: 100%; }
+.msg-row.user { flex-direction: row-reverse; }
+.msg-avatar { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; background: linear-gradient(135deg, #c4a882 0%, #8b6f5e 100%); display: flex; align-items: center; justify-content: center; font-size: 13px; color: white; margin-top: 2px; }
+.msg-content { max-width: 78%; display: flex; flex-direction: column; gap: 4px; }
+.msg-row.user .msg-content { align-items: flex-end; }
+.msg-tag { font-size: 10px; color: var(--text-muted); padding: 0 4px; }
+.bubble { padding: 11px 16px; border-radius: 18px; font-size: 14px; line-height: 1.8; color: var(--text); background: var(--ai-bubble); border: 0.5px solid var(--ai-border); white-space: pre-wrap; word-break: keep-all; }
+.msg-row.user .bubble { background: var(--user-bubble); color: var(--user-text); border-color: transparent; }
+.typing { display: flex; align-items: center; gap: 4px; padding: 12px 16px; background: var(--ai-bubble); border: 0.5px solid var(--ai-border); border-radius: 18px; width: fit-content; }
+.dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-muted); animation: bounce 1.2s infinite; }
+.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+@keyframes bounce { 0%,60%,100%{transform:translateY(0);opacity:.5} 30%{transform:translateY(-5px);opacity:1} }
+.input-area { padding: 12px 18px 16px; border-top: 0.5px solid var(--border); background: var(--surface); flex-shrink: 0; }
+.input-wrap { max-width: 760px; margin: 0 auto; }
+.input-row { display: flex; align-items: flex-end; gap: 8px; background: var(--surface2); border: 0.5px solid var(--border); border-radius: 24px; padding: 8px 8px 8px 18px; transition: border-color 0.2s; }
+.input-row:focus-within { border-color: var(--accent); }
+textarea { flex: 1; border: none; background: transparent; resize: none; font-size: 14px; font-family: inherit; color: var(--text); outline: none; line-height: 1.6; max-height: 120px; min-height: 24px; }
+textarea::placeholder { color: var(--text-muted); }
+.send-btn { width: 36px; height: 36px; border-radius: 50%; background: var(--user-bubble); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s; color: var(--user-text); }
+.send-btn:hover { opacity:.85; transform: scale(1.05); }
+.send-btn:disabled { opacity:.3; cursor: not-allowed; transform: none; }
+.send-btn svg { width: 15px; height: 15px; fill: currentColor; }
+.mode-hint { font-size: 11px; color: var(--text-muted); text-align: center; margin-top: 6px; }
+
+/* 메모리 모달 */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; z-index: 200; }
+.modal { background: var(--surface); border-radius: 16px; padding: 24px; width: 90%; max-width: 400px; border: 0.5px solid var(--border); }
+.modal-title { font-size: 15px; font-weight: 500; margin-bottom: 6px; }
+.modal-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.6; }
+.modal-stat { display: flex; gap: 10px; margin-bottom: 16px; }
+.stat-card { flex: 1; background: var(--surface2); border-radius: 10px; padding: 10px; text-align: center; }
+.stat-num { font-size: 22px; font-weight: 500; color: var(--text); }
+.stat-label { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+.modal-section { background: var(--surface2); border-radius: 10px; padding: 12px 14px; font-size: 12px; line-height: 1.75; color: var(--text-muted); max-height: 180px; overflow-y: auto; margin-bottom: 16px; white-space: pre-wrap; }
+.modal-close { width: 100%; padding: 10px; border: 0.5px solid var(--border); border-radius: 10px; background: none; font-family: inherit; font-size: 13px; color: var(--text); cursor: pointer; transition: all 0.15s; }
+.modal-close:hover { background: var(--surface2); }
+</style>
+</head>
+<body>
+
+<!-- ══ SCREEN 1: 사용자 선택 ══ -->
+<div class="screen" id="screen-users">
+  <div class="users-inner">
+    <div class="users-logo">
+      <div class="logo-mark">✦</div>
+      <div class="logo-title">나의 이야기</div>
+      <div class="logo-sub">누구로 접속할까요?</div>
+    </div>
+
+    <div style="width:100%; display:flex; flex-direction:column; gap:10px;">
+      <div class="users-label">사용자 선택</div>
+      <div class="user-list" id="userList">
+        <!-- JS로 렌더링 -->
+      </div>
+      <button class="add-user-btn" onclick="showAddUser()">＋ 새 사용자 추가</button>
+    </div>
+
+    <div class="users-footer">
+      각 사용자의 대화는 PIN 기반 AES-256으로 암호화됩니다.<br>
+      PIN 원문과 암호화 키는 어디에도 저장되지 않아요.
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCREEN 2: PIN 입력 / 설정 ══ -->
+<div class="screen hidden" id="screen-pin">
+  <div class="pin-inner">
+    <button class="pin-back" onclick="backToUsers()">‹ 뒤로</button>
+    <div class="pin-profile">
+      <div class="pin-avatar" id="pinAvatar">✦</div>
+      <div class="pin-username" id="pinUsername">echo</div>
+    </div>
+
+    <!-- 잠금 상태 뷰 -->
+    <div class="pin-lock hidden" id="pinLockView">
+      <div class="pin-lock-icon">🔒</div>
+      <div class="pin-lock-msg">잠시 후 다시 시도해 주세요.</div>
+      <div class="pin-lock-timer" id="lockTimer">30</div>
+    </div>
+
+    <!-- 일반 PIN 뷰 -->
+    <div id="pinNormalView" style="width:100%; display:flex; flex-direction:column; align-items:center; gap:18px;">
+      <div class="pin-prompt" id="pinPrompt">PIN을 입력해 주세요</div>
+      <div class="pin-dots" id="pinDots">
+        <!-- JS로 렌더링 -->
+      </div>
+      <div class="pin-error" id="pinError"></div>
+      <div class="pin-keypad" id="pinKeypad">
+        <!-- JS로 렌더링 -->
+      </div>
+      <div class="pin-confirm-hint" id="pinConfirmHint"></div>
+    </div>
+
+    <!-- 새 사용자 추가 패널 (screen-users의 add-user는 여기서 처리) -->
+    <div class="new-user-panel hidden" id="newUserPanel">
+      <div class="pin-prompt" style="text-align:center;">새 사용자 이름을 입력해 주세요</div>
+      <input class="new-user-input" id="newUserNameInput" type="text" placeholder="이름" maxlength="16" oninput="onNewUserNameInput()">
+      <button class="new-user-confirm" id="newUserConfirmBtn" onclick="confirmNewUser()" disabled>다음 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCREEN 3: 챗봇 ══ -->
+<div class="screen hidden" id="screen-chat">
+  <div class="header">
+    <div class="header-top">
+      <div class="brand">
+        <div class="avatar" id="chatAvatar" title="사용자 전환" onclick="logoutToUsers()">✦</div>
+        <div>
+          <div class="brand-name">나의 이야기</div>
+          <div class="brand-sub" id="brandSub">불러오는 중...</div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="mem-badge" onclick="showApiKeyModal()" title="API 키 설정" style="margin-right:2px;">
+          <span>🔑</span>
+        </button>
+        <button class="mem-badge" onclick="showMemory()">
+          <div class="mem-dot" id="memDot"></div>
+          <span id="memLabel">메모리</span>
+        </button>
+        <button class="clear-btn" onclick="clearChat()">초기화</button>
+      </div>
+    </div>
+    <div class="mode-bar">
+      <button class="mode-btn active" data-mode="blend" onclick="setMode(this)">✨ 자유 혼합</button>
+      <button class="mode-btn" data-mode="friend" onclick="setMode(this)">🫂 친구처럼</button>
+      <button class="mode-btn" data-mode="psych" onclick="setMode(this)">🧠 심리 전문가</button>
+      <button class="mode-btn" data-mode="coach" onclick="setMode(this)">🎯 커리어 코치</button>
+      <button class="mode-btn" data-mode="assistant" onclick="setMode(this)">📋 개인 비서</button>
+    </div>
+  </div>
+
+  <div class="messages" id="messages">
+    <div class="welcome" id="welcome">
+      <div class="welcome-title">안녕하세요 👋</div>
+      <div class="welcome-desc">오늘은 어떤 이야기를 나눠볼까요?<br>편하게 꺼내셔도 괜찮아요.</div>
+      <div class="starter-chips">
+        <button class="chip" onclick="sendStarter(this.innerText)">요즘 번아웃인 것 같아서…</button>
+        <button class="chip" onclick="sendStarter(this.innerText)">커리어 방향을 모르겠어요</button>
+        <button class="chip" onclick="sendStarter(this.innerText)">인간관계가 너무 힘들어요</button>
+        <button class="chip" onclick="sendStarter(this.innerText)">나 자신을 잘 모르겠어요</button>
+        <button class="chip" onclick="sendStarter(this.innerText)">목표는 있는데 실행이 안 돼요</button>
+        <button class="chip" onclick="sendStarter(this.innerText)">그냥 오늘 하루 힘들었어요</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="input-area">
+    <div class="input-wrap">
+      <div class="input-row">
+        <textarea id="input" placeholder="무슨 일이 있었나요?" rows="1"
+          onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+          <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+        </button>
+      </div>
+      <div class="mode-hint" id="modeHint">상황에 맞게 친구·심리 전문가·코치를 자연스럽게 섞어서 이야기해요</div>
+    </div>
+  </div>
+</div>
+
+<!-- API 키 설정 모달 -->
+<div class="modal-overlay" id="apiKeyModal" style="display:none;" onclick="if(event.target===this&&apiKey)closeApiKeyModal()">
+  <div class="modal">
+    <div class="modal-title">🔑 Anthropic API 키 설정</div>
+    <div class="modal-sub">
+      API 키는 PIN 기반 AES-256으로 암호화되어 이 기기에만 저장됩니다.<br>
+      소스 코드에는 포함되지 않아요.<br>
+      <a href="https://console.anthropic.com" target="_blank" style="color:var(--accent);font-size:11px;">발급 → console.anthropic.com</a>
+    </div>
+    <input id="apiKeyInput" type="password"
+      style="width:100%;padding:11px 14px;border:0.5px solid var(--border);border-radius:10px;background:var(--surface2);font-family:inherit;font-size:13px;color:var(--text);outline:none;margin-bottom:10px;"
+      placeholder="Anthropic API 키를 입력하세요"
+      oninput="document.getElementById('apiKeySaveBtn').disabled=!this.value.trim()">
+    <div style="display:flex;gap:8px;">
+      <button id="apiKeySaveBtn" onclick="confirmApiKey()" disabled
+        style="flex:1;padding:10px;border:none;border-radius:10px;background:var(--user-bubble);color:var(--user-text);font-family:inherit;font-size:13px;cursor:pointer;transition:opacity .15s;"
+        onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity=''">저장</button>
+      <button onclick="if(apiKey)closeApiKeyModal()" id="apiKeyCancelBtn"
+        style="flex:1;padding:10px;border:0.5px solid var(--border);border-radius:10px;background:none;font-family:inherit;font-size:13px;color:var(--text);cursor:pointer;"
+        class="modal-close">취소</button>
+    </div>
+  </div>
+</div>
+
+<!-- 메모리 모달 -->
+<div class="modal-overlay" id="memModal" style="display:none;" onclick="if(event.target===this)closeMemory()">
+  <div class="modal">
+    <div class="modal-title">🧠 메모리 현황</div>
+    <div class="modal-sub">오래된 대화는 자동 압축되고, 최근 대화와 함께 맥락으로 활용돼요.</div>
+    <div class="modal-stat">
+      <div class="stat-card"><div class="stat-num" id="statTotal">0</div><div class="stat-label">총 대화 수</div></div>
+      <div class="stat-card"><div class="stat-num" id="statRecent">0</div><div class="stat-label">현재 보관</div></div>
+      <div class="stat-card"><div class="stat-num" id="statCompress">0</div><div class="stat-label">압축 횟수</div></div>
+    </div>
+    <div class="modal-section" id="memContent">아직 요약된 메모리가 없어요.</div>
+    <button class="modal-close" onclick="closeMemory()">닫기</button>
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════════════════
+   설정값
+════════════════════════════════════════════ */
+let apiKey = '';  // 런타임 메모리에만 보관, 소스에 키 없음
+const COMPRESS_THRESHOLD = 14;
+const COMPRESS_BATCH = 6;
+const PIN_HASH_SALT = 'naeiyagi_v2_2024';  // PIN 해시용 고정 salt
+const PIN_MAX_ATTEMPTS = 5;
+const PIN_LOCK_SECONDS = 30;
+const PIN_LENGTH = 6;
+const PBKDF2_ITERATIONS = 100000;
+const LEGACY_STORAGE_KEY = 'naeiyagi_v2';
+
+/* ════════════════════════════════════════════
+   스토리지 키 헬퍼
+════════════════════════════════════════════ */
+const stateKey  = id => `naeiyagi_state_${id}`;
+const pinKey    = id => `naeiyagi_pin_${id}`;
+const lockKey   = id => `naeiyagi_lock_${id}`;
+const saltKey   = id => `naeiyagi_ksalt_${id}`;  // AES 키 파생용 per-user salt
+const apikeyStorageKey = id => `naeiyagi_apikey_${id}`;  // 암호화된 API 키
+const USERS_KEY = 'naeiyagi_users';
+
+/* ════════════════════════════════════════════
+   사용자 목록 관리
+════════════════════════════════════════════ */
+function loadUsers() {
+  try {
+    const raw = localStorage.getItem(USERS_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  const defaults = [{ id: 'echo', name: 'Echo', emoji: '✦', desc: '나의 이야기' }];
+  saveUsers(defaults);
+  return defaults;
+}
+function saveUsers(users) {
+  localStorage.setItem(USERS_KEY, JSON.stringify(users));
+}
+function addUser(name) {
+  const users = loadUsers();
+  const id = name.toLowerCase().replace(/\s+/g, '_') + '_' + Date.now();
+  const emojis = ['🌙','🌿','☁️','🦋','⭐','🌸','🍃','🔮'];
+  const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+  users.push({ id, name, emoji, desc: '새 사용자' });
+  saveUsers(users);
+  return { id, name, emoji };
+}
+
+/* ════════════════════════════════════════════
+   PIN 해싱 (빠른 로그인 검증용)
+════════════════════════════════════════════ */
+async function hashPin(pin) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pin + PIN_HASH_SALT));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+async function savePinHash(userId, pin) {
+  localStorage.setItem(pinKey(userId), await hashPin(pin));
+}
+async function verifyPinHash(userId, pin) {
+  const stored = localStorage.getItem(pinKey(userId));
+  if (!stored) return null;
+  return (await hashPin(pin)) === stored;
+}
+function hasPinSet(userId) {
+  return !!localStorage.getItem(pinKey(userId));
+}
+
+/* ════════════════════════════════════════════
+   AES-256-GCM 암호화 (PIN → PBKDF2 → AES키)
+════════════════════════════════════════════ */
+
+// 랜덤 salt 생성 (최초 PIN 설정 시 1회)
+function generateSalt() {
+  return btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(16))));
+}
+
+// PIN + salt → AES-256-GCM CryptoKey (메모리 전용, 비추출 불가)
+async function deriveAesKey(pin, saltB64) {
+  const saltBytes = Uint8Array.from(atob(saltB64), c => c.charCodeAt(0));
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(pin), 'PBKDF2', false, ['deriveKey']
+  );
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt: saltBytes, iterations: PBKDF2_ITERATIONS, hash: 'SHA-256' },
+    keyMaterial,
+    { name: 'AES-GCM', length: 256 },
+    false,          // 키 원문 추출 불가
+    ['encrypt', 'decrypt']
+  );
+}
+
+// AES-GCM 암호화 → { iv, ct } (base64)
+async function encryptData(key, data) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv },
+    key,
+    new TextEncoder().encode(JSON.stringify(data))
+  );
+  return {
+    iv: btoa(String.fromCharCode(...iv)),
+    ct: btoa(String.fromCharCode(...new Uint8Array(ct)))
+  };
+}
+
+// AES-GCM 복호화 → JS 객체
+async function decryptData(key, enc) {
+  const iv = Uint8Array.from(atob(enc.iv), c => c.charCodeAt(0));
+  const ct = Uint8Array.from(atob(enc.ct), c => c.charCodeAt(0));
+  const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct);
+  return JSON.parse(new TextDecoder().decode(plain));
+}
+
+// 미암호화 기존 데이터를 첫 로그인 시 암호화
+async function encryptExistingIfNeeded() {
+  const raw = localStorage.getItem(stateKey(currentUserId));
+  if (!raw || !cryptoKey) return;
+  try {
+    const parsed = JSON.parse(raw);
+    if (!parsed.ct) {  // 암호화 안 된 평문 데이터
+      const enc = await encryptData(cryptoKey, parsed);
+      localStorage.setItem(stateKey(currentUserId), JSON.stringify(enc));
+    }
+  } catch(e) {}
+}
+
+/* ════════════════════════════════════════════
+   API 키 관리 (AES 암호화 저장)
+════════════════════════════════════════════ */
+async function saveApiKey(key) {
+  apiKey = key;
+  if (cryptoKey) {
+    const enc = await encryptData(cryptoKey, { k: key });
+    localStorage.setItem(apikeyStorageKey(currentUserId), JSON.stringify(enc));
+  }
+}
+async function loadApiKey() {
+  const raw = localStorage.getItem(apikeyStorageKey(currentUserId));
+  if (!raw || !cryptoKey) { apiKey = ''; return; }
+  try {
+    const parsed = JSON.parse(raw);
+    const data = await decryptData(cryptoKey, parsed);
+    apiKey = data.k || '';
+  } catch(e) { apiKey = ''; }
+}
+
+/* ════════════════════════════════════════════
+   잠금 관리
+════════════════════════════════════════════ */
+function getLockInfo(userId) {
+  try { return JSON.parse(localStorage.getItem(lockKey(userId))) || {}; } catch(e) {}
+  return { attempts: 0, lockedUntil: 0 };
+}
+function saveLockInfo(userId, info) {
+  localStorage.setItem(lockKey(userId), JSON.stringify(info));
+}
+function isLocked(userId) {
+  return (getLockInfo(userId).lockedUntil || 0) > Date.now();
+}
+function recordFailedAttempt(userId) {
+  const info = getLockInfo(userId);
+  info.attempts = (info.attempts || 0) + 1;
+  if (info.attempts >= PIN_MAX_ATTEMPTS) {
+    info.lockedUntil = Date.now() + PIN_LOCK_SECONDS * 1000;
+    info.attempts = 0;
+  }
+  saveLockInfo(userId, info);
+  return info;
+}
+function resetLock(userId) {
+  saveLockInfo(userId, { attempts: 0, lockedUntil: 0 });
+}
+
+/* ════════════════════════════════════════════
+   기존 데이터 마이그레이션 (→ echo 계정)
+════════════════════════════════════════════ */
+function migrateIfNeeded() {
+  const legacyData = localStorage.getItem(LEGACY_STORAGE_KEY);
+  const echoStateExists = localStorage.getItem(stateKey('echo'));
+  if (legacyData && !echoStateExists) {
+    localStorage.setItem(stateKey('echo'), legacyData);
+  }
+}
+
+/* ════════════════════════════════════════════
+   화면 전환
+════════════════════════════════════════════ */
+function showScreen(id) {
+  ['screen-users','screen-pin','screen-chat'].forEach(sid => {
+    const el = document.getElementById(sid);
+    if (sid === id) el.classList.remove('hidden');
+    else el.classList.add('hidden');
+  });
+}
+
+/* ════════════════════════════════════════════
+   SCREEN 1 : 사용자 선택
+════════════════════════════════════════════ */
+function renderUserList() {
+  const users = loadUsers();
+  const list = document.getElementById('userList');
+  list.innerHTML = '';
+  users.forEach(u => {
+    const card = document.createElement('div');
+    card.className = 'user-card';
+    const raw = localStorage.getItem(stateKey(u.id));
+    let desc = '아직 대화가 없어요';
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        if (parsed.ct) {
+          desc = '🔒 암호화된 대화 기록';
+        } else {
+          const n = Math.floor((parsed.totalCount || 0) / 2);
+          desc = n > 0 ? `${n}번의 대화 기록` : '아직 대화가 없어요';
+        }
+      } catch(e) {}
+    }
+    card.innerHTML = `
+      <div class="user-card-avatar">${u.emoji}</div>
+      <div class="user-card-info">
+        <div class="user-card-name">${u.name}</div>
+        <div class="user-card-desc">${desc}</div>
+      </div>
+      <div class="user-card-arrow">›</div>`;
+    card.onclick = () => openPinScreen(u);
+    list.appendChild(card);
+  });
+}
+
+function showAddUser() {
+  currentUserId = null;
+  currentUserObj = null;
+  document.getElementById('pinAvatar').textContent = '＋';
+  document.getElementById('pinUsername').textContent = '새 사용자';
+  document.getElementById('pinNormalView').classList.add('hidden');
+  document.getElementById('pinLockView').classList.add('hidden');
+  document.getElementById('newUserPanel').classList.remove('hidden');
+  document.getElementById('newUserNameInput').value = '';
+  document.getElementById('newUserConfirmBtn').disabled = true;
+  showScreen('screen-pin');
+}
+
+/* ════════════════════════════════════════════
+   SCREEN 2 : PIN
+════════════════════════════════════════════ */
+let currentUserId = null;
+let currentUserObj = null;
+let cryptoKey = null;   // ← AES 키: 메모리에만 존재, 로그아웃 시 소거
+let pinBuffer = '';
+let pinMode = 'verify';
+let pendingSetupPin = '';
+let lockTimerInterval = null;
+
+function openPinScreen(user) {
+  currentUserId = user.id;
+  currentUserObj = user;
+  cryptoKey = null;
+  pinBuffer = '';
+  pendingSetupPin = '';
+
+  document.getElementById('pinAvatar').textContent = user.emoji;
+  document.getElementById('pinUsername').textContent = user.name;
+  document.getElementById('newUserPanel').classList.add('hidden');
+  document.getElementById('pinNormalView').classList.remove('hidden');
+  document.getElementById('pinLockView').classList.add('hidden');
+  document.getElementById('pinError').textContent = '';
+  setPinLoading(false);
+
+  if (isLocked(user.id)) {
+    showLockView(user.id);
+  } else if (!hasPinSet(user.id)) {
+    pinMode = 'setup';
+    document.getElementById('pinPrompt').textContent = `PIN ${PIN_LENGTH}자리를 설정해 주세요`;
+    document.getElementById('pinConfirmHint').textContent = 'PIN으로 대화 내용이 AES-256 암호화됩니다';
+  } else {
+    pinMode = 'verify';
+    document.getElementById('pinPrompt').textContent = 'PIN을 입력해 주세요';
+    document.getElementById('pinConfirmHint').textContent = '';
+  }
+  renderPinDots();
+  renderKeypad();
+  showScreen('screen-pin');
+}
+
+// 키패드 잠금 (키 파생 중 입력 방지)
+function setPinLoading(on) {
+  const keypad = document.getElementById('pinKeypad');
+  if (on) {
+    keypad.style.opacity = '0.4';
+    keypad.style.pointerEvents = 'none';
+    document.getElementById('pinPrompt').textContent = '처리 중...';
+  } else {
+    keypad.style.opacity = '';
+    keypad.style.pointerEvents = '';
+  }
+}
+
+function showLockView(userId) {
+  document.getElementById('pinNormalView').classList.add('hidden');
+  document.getElementById('pinLockView').classList.remove('hidden');
+  startLockTimer(userId);
+}
+
+function startLockTimer(userId) {
+  if (lockTimerInterval) clearInterval(lockTimerInterval);
+  const update = () => {
+    const info = getLockInfo(userId);
+    const remaining = Math.ceil((info.lockedUntil - Date.now()) / 1000);
+    if (remaining <= 0) {
+      clearInterval(lockTimerInterval);
+      document.getElementById('pinLockView').classList.add('hidden');
+      document.getElementById('pinNormalView').classList.remove('hidden');
+      document.getElementById('pinError').textContent = '';
+    } else {
+      document.getElementById('lockTimer').textContent = remaining + 's';
+    }
+  };
+  update();
+  lockTimerInterval = setInterval(update, 500);
+}
+
+function renderPinDots() {
+  const container = document.getElementById('pinDots');
+  container.innerHTML = '';
+  for (let i = 0; i < PIN_LENGTH; i++) {
+    const d = document.createElement('div');
+    d.className = 'pin-dot' + (i < pinBuffer.length ? ' filled' : '');
+    container.appendChild(d);
+  }
+}
+
+function renderKeypad() {
+  const pad = document.getElementById('pinKeypad');
+  pad.innerHTML = '';
+  ['1','2','3','4','5','6','7','8','9','','0','⌫'].forEach(k => {
+    const btn = document.createElement('button');
+    if (!k) {
+      btn.className = 'key-btn empty';
+    } else if (k === '⌫') {
+      btn.className = 'key-btn del';
+      btn.textContent = '⌫';
+      btn.onclick = () => pinInput('DEL');
+    } else {
+      btn.className = 'key-btn';
+      btn.textContent = k;
+      btn.onclick = () => pinInput(k);
+    }
+    pad.appendChild(btn);
+  });
+}
+
+function pinInput(key) {
+  if (key === 'DEL') {
+    pinBuffer = pinBuffer.slice(0, -1);
+  } else {
+    if (pinBuffer.length >= PIN_LENGTH) return;
+    pinBuffer += key;
+  }
+  renderPinDots();
+  document.getElementById('pinError').textContent = '';
+  if (pinBuffer.length === PIN_LENGTH) processPinComplete();
+}
+
+async function processPinComplete() {
+  const pin = pinBuffer;
+  pinBuffer = '';
+  renderPinDots();
+
+  if (pinMode === 'setup') {
+    pendingSetupPin = pin;
+    pinMode = 'setup_confirm';
+    document.getElementById('pinPrompt').textContent = 'PIN을 한 번 더 입력해 주세요';
+    document.getElementById('pinConfirmHint').textContent = '동일한 PIN을 입력해 주세요';
+
+  } else if (pinMode === 'setup_confirm') {
+    if (pin !== pendingSetupPin) {
+      document.getElementById('pinError').textContent = 'PIN이 일치하지 않아요. 다시 시작해 주세요.';
+      pendingSetupPin = '';
+      pinMode = 'setup';
+      document.getElementById('pinPrompt').textContent = `PIN ${PIN_LENGTH}자리를 설정해 주세요`;
+      document.getElementById('pinConfirmHint').textContent = 'PIN으로 대화 내용이 AES-256 암호화됩니다';
+    } else {
+      setPinLoading(true);
+      // PIN 해시 저장 + salt 생성 + AES 키 파생
+      await savePinHash(currentUserId, pin);
+      let userSalt = localStorage.getItem(saltKey(currentUserId));
+      if (!userSalt) {
+        userSalt = generateSalt();
+        localStorage.setItem(saltKey(currentUserId), userSalt);
+      }
+      cryptoKey = await deriveAesKey(pin, userSalt);
+      await encryptExistingIfNeeded();  // 기존 평문 데이터 있으면 암호화
+      pendingSetupPin = '';
+      setPinLoading(false);
+      await enterChat();
+    }
+
+  } else { // verify
+    // 1단계: 빠른 해시 검증
+    const hashOk = await verifyPinHash(currentUserId, pin);
+    if (!hashOk) {
+      const info = recordFailedAttempt(currentUserId);
+      if (isLocked(currentUserId)) {
+        showLockView(currentUserId);
+      } else {
+        const remaining = PIN_MAX_ATTEMPTS - (info.attempts || 0);
+        document.getElementById('pinError').textContent =
+          `PIN이 틀렸어요. 남은 시도: ${remaining}회`;
+      }
+      return;
+    }
+    // 2단계: AES 키 파생 (PBKDF2, 약간의 시간 소요)
+    setPinLoading(true);
+    let userSalt = localStorage.getItem(saltKey(currentUserId));
+    if (!userSalt) {
+      // 암호화 기능 추가 이전에 PIN만 설정한 사용자 — salt 신규 생성
+      userSalt = generateSalt();
+      localStorage.setItem(saltKey(currentUserId), userSalt);
+    }
+    cryptoKey = await deriveAesKey(pin, userSalt);
+    await encryptExistingIfNeeded();  // 평문 데이터 있으면 이번에 암호화
+    resetLock(currentUserId);
+    setPinLoading(false);
+    await enterChat();
+  }
+}
+
+function backToUsers() {
+  if (lockTimerInterval) clearInterval(lockTimerInterval);
+  cryptoKey = null;
+  pinBuffer = '';
+  pendingSetupPin = '';
+  renderUserList();
+  showScreen('screen-users');
+}
+
+/* 새 사용자 추가 */
+function onNewUserNameInput() {
+  document.getElementById('newUserConfirmBtn').disabled =
+    !document.getElementById('newUserNameInput').value.trim();
+}
+function confirmNewUser() {
+  const name = document.getElementById('newUserNameInput').value.trim();
+  if (!name) return;
+  const user = addUser(name);
+  document.getElementById('newUserPanel').classList.add('hidden');
+  openPinScreen(user);
+}
+
+/* ════════════════════════════════════════════
+   SCREEN 3 : 챗봇 진입
+════════════════════════════════════════════ */
+async function enterChat() {
+  if (lockTimerInterval) clearInterval(lockTimerInterval);
+  await Promise.all([loadChatState(), loadApiKey()]);
+  document.getElementById('chatAvatar').textContent = currentUserObj.emoji;
+  showScreen('screen-chat');
+  document.getElementById('input').focus();
+}
+
+function logoutToUsers() {
+  if (!confirm('사용자 선택 화면으로 돌아갈까요?')) return;
+  cryptoKey = null;  // ← AES 키 메모리에서 즉시 소거
+  apiKey = '';       // ← API 키도 메모리에서 소거
+  currentUserId = null;
+  currentUserObj = null;
+  state = { summary: '', recentMessages: [], totalCount: 0, compressCount: 0 };
+  document.getElementById('messages').innerHTML = getWelcomeHTML('안녕하세요 👋');
+  renderUserList();
+  showScreen('screen-users');
+}
+
+/* ════════════════════════════════════════════
+   챗봇 상태 관리 (암호화/복호화 포함)
+════════════════════════════════════════════ */
+const defaultState = () => ({ summary: '', recentMessages: [], totalCount: 0, compressCount: 0 });
+
+let state = defaultState();
+let currentMode = 'blend';
+let isLoading = false;
+
+async function loadChatState() {
+  const raw = localStorage.getItem(stateKey(currentUserId));
+  if (!raw) {
+    state = defaultState();
+  } else {
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed.ct && parsed.iv) {
+        // 암호화된 데이터 → 복호화
+        state = cryptoKey ? await decryptData(cryptoKey, parsed) : defaultState();
+      } else {
+        // 아직 평문 (마이그레이션 전)
+        state = parsed;
+      }
+    } catch(e) {
+      state = defaultState();
+    }
+  }
+  updateMemBadge();
+  document.getElementById('brandSub').textContent = state.totalCount > 0
+    ? state.totalCount + '번의 대화를 기억하고 있어요'
+    : '언제든 꺼내도 괜찮아요';
+  document.getElementById('messages').innerHTML = getWelcomeHTML(
+    state.totalCount > 0 ? '다시 왔군요 👋' : '안녕하세요 👋'
+  );
+}
+
+async function saveChatState() {
+  if (cryptoKey) {
+    const enc = await encryptData(cryptoKey, state);
+    localStorage.setItem(stateKey(currentUserId), JSON.stringify(enc));
+  } else {
+    localStorage.setItem(stateKey(currentUserId), JSON.stringify(state));
+  }
+  updateMemBadge();
+}
+
+function updateMemBadge() {
+  const dot = document.getElementById('memDot');
+  const label = document.getElementById('memLabel');
+  if (state.summary) {
+    dot.className = 'mem-dot active';
+    label.textContent = '메모리 ' + state.compressCount + '회 압축';
+  } else {
+    dot.className = 'mem-dot';
+    label.textContent = '메모리';
+  }
+  if (state.totalCount > 0)
+    document.getElementById('brandSub').textContent = state.totalCount + '번의 대화를 기억하고 있어요';
+}
+
+/* ════════════════════════════════════════════
+   챗봇 UI 헬퍼
+════════════════════════════════════════════ */
+function getWelcomeHTML(title) {
+  return `<div class="welcome" id="welcome">
+    <div class="welcome-title">${title}</div>
+    <div class="welcome-desc">오늘은 어떤 이야기를 나눠볼까요?<br>편하게 꺼내셔도 괜찮아요.</div>
+    <div class="starter-chips">
+      <button class="chip" onclick="sendStarter(this.innerText)">요즘 번아웃인 것 같아서…</button>
+      <button class="chip" onclick="sendStarter(this.innerText)">커리어 방향을 모르겠어요</button>
+      <button class="chip" onclick="sendStarter(this.innerText)">인간관계가 너무 힘들어요</button>
+      <button class="chip" onclick="sendStarter(this.innerText)">나 자신을 잘 모르겠어요</button>
+      <button class="chip" onclick="sendStarter(this.innerText)">목표는 있는데 실행이 안 돼요</button>
+      <button class="chip" onclick="sendStarter(this.innerText)">그냥 오늘 하루 힘들었어요</button>
+    </div>
+  </div>`;
+}
+
+function buildMessages() {
+  const msgs = [];
+  if (state.summary) {
+    msgs.push({ role: 'user', content: '[이전 대화 요약]\n' + state.summary });
+    msgs.push({ role: 'assistant', content: '알겠어요. 이전 대화 내용을 기억하고 있을게요.' });
+  }
+  for (const m of state.recentMessages) msgs.push(m);
+  return msgs;
+}
+
+async function maybeCompress() {
+  if (state.recentMessages.length < COMPRESS_THRESHOLD) return;
+  const toCompress = state.recentMessages.splice(0, COMPRESS_BATCH);
+  const prevSummary = state.summary ? '기존 요약:\n' + state.summary + '\n\n' : '';
+  const convText = toCompress.map(m =>
+    (m.role === 'user' ? '사용자' : 'AI') + ': ' + m.content
+  ).join('\n');
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514', max_tokens: 500,
+        system: '대화 내용을 압축·요약합니다. 핵심 감정 상태, 주요 고민 주제, 중요한 맥락(직업·관계·목표 등), 합의된 통찰이나 결정을 3~6줄로 압축하세요. 구체적 이름은 생략. 한국어로.',
+        messages: [{ role: 'user', content: prevSummary + '새 대화:\n' + convText + '\n\n위 내용을 기존 요약과 통합하여 압축 요약해주세요.' }]
+      })
+    });
+    const data = await res.json();
+    if (data.content?.[0]?.text) { state.summary = data.content[0].text; state.compressCount++; }
+  } catch(e) { state.recentMessages.unshift(...toCompress); }
+  await saveChatState();
+}
+
+function setMode(btn) {
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentMode = btn.dataset.mode;
+  document.getElementById('modeHint').textContent = MODES[currentMode].hint;
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+
+function sendStarter(text) {
+  document.getElementById('input').value = text;
+  sendMessage();
+}
+
+function addMessage(role, text, modeTag) {
+  const welcome = document.getElementById('welcome');
+  if (welcome) welcome.remove();
+  const msgs = document.getElementById('messages');
+  const row = document.createElement('div');
+  row.className = 'msg-row ' + (role === 'user' ? 'user' : '');
+  if (role === 'assistant') {
+    row.innerHTML = '<div class="msg-avatar">✦</div><div class="msg-content"><span class="msg-tag">' + (modeTag||'') + '</span><div class="bubble">' + text + '</div></div>';
+  } else {
+    row.innerHTML = '<div class="msg-content"><div class="bubble">' + text + '</div></div>';
+  }
+  msgs.appendChild(row);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function addTyping() {
+  const welcome = document.getElementById('welcome');
+  if (welcome) welcome.remove();
+  const msgs = document.getElementById('messages');
+  const row = document.createElement('div');
+  row.className = 'msg-row'; row.id = 'typing-ind';
+  row.innerHTML = '<div class="msg-avatar">✦</div><div class="msg-content"><div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>';
+  msgs.appendChild(row); msgs.scrollTop = msgs.scrollHeight;
+}
+function removeTyping() { const t = document.getElementById('typing-ind'); if(t) t.remove(); }
+
+async function sendMessage() {
+  if (!apiKey) { showApiKeyModal(); return; }
+  const input = document.getElementById('input');
+  const text = input.value.trim();
+  if (!text || isLoading) return;
+  input.value = ''; input.style.height = 'auto';
+  isLoading = true;
+  document.getElementById('sendBtn').disabled = true;
+  const mode = currentMode;
+  addMessage('user', text, null);
+  state.recentMessages.push({ role: 'user', content: text });
+  state.totalCount++;
+  addTyping();
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 2000, system: MODES[mode].system + EFFICIENCY_GUIDE, messages: buildMessages() })
+    });
+    const data = await res.json();
+    removeTyping();
+    if (data.error) {
+      const errMsg = data.error.message || JSON.stringify(data.error);
+      addMessage('assistant', '⚠️ API 오류: ' + errMsg, MODES[mode].tag);
+      state.recentMessages.pop(); state.totalCount--;
+    } else {
+      const reply = data.content?.[0]?.text || '잠시 후 다시 시도해 주세요.';
+      state.recentMessages.push({ role: 'assistant', content: reply });
+      state.totalCount++;
+      addMessage('assistant', reply, MODES[mode].tag);
+      await maybeCompress();
+      await saveChatState();
+    }
+  } catch(e) {
+    removeTyping();
+    addMessage('assistant', '연결 오류가 발생했어요. 인터넷 연결을 확인해 주세요.\n\n오류: ' + e.message, MODES[mode].tag);
+    state.recentMessages.pop(); state.totalCount--;
+  }
+  isLoading = false;
+  document.getElementById('sendBtn').disabled = false;
+  document.getElementById('input').focus();
+}
+
+async function clearChat() {
+  if (!confirm('대화 기록과 메모리를 모두 초기화할까요?')) return;
+  state = defaultState();
+  await saveChatState();
+  document.getElementById('messages').innerHTML = getWelcomeHTML('새로 시작해요 👋');
+  document.getElementById('brandSub').textContent = '언제든 꺼내도 괜찮아요';
+}
+
+function showApiKeyModal() {
+  const input = document.getElementById('apiKeyInput');
+  input.value = apiKey || '';
+  document.getElementById('apiKeySaveBtn').disabled = !input.value.trim();
+  // 키 없으면 취소 불가
+  document.getElementById('apiKeyCancelBtn').style.display = apiKey ? '' : 'none';
+  document.getElementById('apiKeyModal').style.display = 'flex';
+  setTimeout(() => input.focus(), 50);
+}
+function closeApiKeyModal() {
+  document.getElementById('apiKeyModal').style.display = 'none';
+}
+async function confirmApiKey() {
+  const val = document.getElementById('apiKeyInput').value.trim();
+  if (!val) return;
+  await saveApiKey(val);
+  closeApiKeyModal();
+  // 대화 입력창으로 포커스
+  document.getElementById('input').focus();
+}
+
+function showMemory() {
+  document.getElementById('statTotal').textContent = Math.floor(state.totalCount / 2);
+  document.getElementById('statRecent').textContent = state.recentMessages.length;
+  document.getElementById('statCompress').textContent = state.compressCount;
+  document.getElementById('memContent').textContent = state.summary || '아직 요약된 메모리가 없어요.\n대화가 쌓이면 자동으로 압축·요약이 시작돼요.';
+  document.getElementById('memModal').style.display = 'flex';
+}
+function closeMemory() { document.getElementById('memModal').style.display = 'none'; }
+
+/* ════════════════════════════════════════════
+   모드 정의
+════════════════════════════════════════════ */
+const EFFICIENCY_GUIDE = `
+
+[답변 효율 원칙]
+- 핵심을 먼저, 부연은 필요할 때만: 결론·공감·핵심 제안을 앞에 두고, 세부 설명은 꼭 필요한 경우에만 덧붙이세요.
+- 불필요한 반복 금지: 사용자가 방금 말한 내용을 그대로 되풀이하지 마세요.
+- 적절한 길이 유지: 짧은 질문엔 짧게, 깊은 주제엔 충분히. 2000토큰 안에서 완결된 답변을 제공하세요.
+- 형식 효율화: 항목 나열이 필요할 때만 불릿/번호를 사용하고, 일반 대화는 자연스러운 문장으로 쓰세요.`;
+
+const MODES = {
+  blend: {
+    hint: "상황에 맞게 친구·심리 전문가·코치를 자연스럽게 섞어서 이야기해요",
+    tag: "자유 혼합",
+    system: `당신은 '나의 이야기'입니다. 따뜻한 AI 동반자로, 세 가지 역할을 자연스럽게 섞어서 대화합니다.
+
+역할 혼합 원칙:
+- 기본적으로 친구처럼 편하게 반말로 들어주고 공감해요
+- 감정 탐색이 필요하면 심리 전문가처럼 부드럽게 깊이 들어가요
+- 목표나 실행 계획이 필요하면 코치처럼 구체적인 방향을 제시해요
+- 한 대화 안에서도 흐름에 따라 역할이 자연스럽게 전환돼요
+
+심리학 기반: CBT, ACT, 자기결정이론, 강점 기반 접근, 정서조절 연구를 바탕으로 해요.
+코칭 기반: GROW 모델, OKR, 강점 탐색을 활용해요.
+태도: 판단 없이, 공감 먼저, 항상 가능성에 집중해요.
+언어: 한국어만 사용하세요. AI임을 드러내지 마세요.`
+  },
+  friend: {
+    hint: "친구처럼 편하게 들어드릴게요", tag: "친구",
+    system: `당신은 진심 어린 친구입니다. 상담심리학 지식이 있지만 드러내지 않고 친구처럼 대화해요.
+반말로 자연스럽게, 감정에 먼저 공감하고, 판단하지 않아요. 조언은 원할 때만. 한국어만 사용하세요.`
+  },
+  psych: {
+    hint: "심리학 연구 기반으로 함께 살펴볼게요", tag: "심리 전문가",
+    system: `당신은 상담심리 전문가입니다. CBT, ACT, 애착이론, 정서조절 연구를 활용해요.
+감정 인정 → 탐색 → 통찰 순서로 도와주세요. 정상화하고, 병리화하지 마세요.
+존댓말, 따뜻한 어조. 한국어만 사용하세요.`
+  },
+  coach: {
+    hint: "커리어와 목표를 함께 발전시켜 봐요", tag: "커리어 코치",
+    system: `당신은 커리어·라이프 코치입니다. GROW 모델, OKR, 강점 기반 코칭을 활용해요.
+막연한 목표를 구체화하고, 실행 가능한 단계를 찾아주세요. 한국어만 사용하세요.`
+  },
+  assistant: {
+    hint: "일정·할 일을 정리하고 효율적으로 움직일 수 있게 도와드려요",
+    tag: "개인 비서",
+    system: `당신은 유능하고 신뢰할 수 있는 개인 비서입니다. 주인의 시간과 에너지를 아끼고 하루를 효율적으로 운영하도록 돕는 것이 핵심 역할입니다.
+
+역할 원칙:
+- 할 일 목록 정리: 사용자가 말하는 과제·약속·아이디어를 체계적으로 정리하고 우선순위를 제안해요
+- 일정 관리: 오늘/이번 주 할 일을 파악하고, 데드라인이나 순서를 함께 점검해요
+- 실행 지원: 막막한 큰 일을 작고 구체적인 단계로 쪼개서 바로 시작할 수 있게 도와요
+- 리마인더 역할: 대화 중 언급된 중요한 사항은 나중에 자연스럽게 상기시켜 드려요
+- 의사결정 보조: 선택지의 장단점을 간결하게 정리해서 빠른 결정을 도와요
+
+말투 원칙:
+- 업무·일정 관련은 깔끔한 존댓말로 핵심만 간결하게
+- 가벼운 일상 대화나 고민에는 편하고 친근하게
+- 과도한 설명 없이, 필요한 것만 딱 말해요
+- 정리가 필요할 땐 번호·불릿 포인트를 적극 활용해요
+
+한국어만 사용하세요.`
+  }
+};
+
+/* ════════════════════════════════════════════
+   앱 초기화
+════════════════════════════════════════════ */
+migrateIfNeeded();
+renderUserList();
+showScreen('screen-users');
+</script>
+</body>
+</html>
