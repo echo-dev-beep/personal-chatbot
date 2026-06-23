@@ -57,7 +57,7 @@ body { font-family: 'Gowun Dodum', 'Apple SD Gothic Neo', sans-serif; background
 /* ══════════════════════════════════════
    SCREEN 2 : 챗봇
 ══════════════════════════════════════ */
-#screen-chat { display: flex; flex-direction: column; overflow: hidden; }
+#screen-chat { display: flex; flex-direction: column; overflow: hidden; transition: bottom 0.22s cubic-bezier(0.4, 0, 0.2, 1); }
 .header { padding: 14px 20px 10px; border-bottom: 0.5px solid var(--border); background: var(--surface); display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; }
 .header-top { display: flex; align-items: center; justify-content: space-between; }
 .brand { display: flex; align-items: center; gap: 10px; }
@@ -260,6 +260,33 @@ textarea::placeholder { color: var(--text-muted); }
 </div>
 
 <script>
+/* ════════════════════════════════════════════
+   키보드 대응: 입력창을 자판 바로 위에 고정
+   - resize만 감지 (scroll 감지 시 iOS에서 충돌)
+   - height 대신 bottom을 조정해 flex 레이아웃 유지
+════════════════════════════════════════════ */
+(function () {
+  if (!window.visualViewport) return;
+  const chatScreen = document.getElementById('screen-chat');
+  let raf = null;
+
+  function syncKeyboard() {
+    if (raf) cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(function () {
+      if (chatScreen.classList.contains('hidden')) return;
+      const vv = window.visualViewport;
+      const kb = Math.max(0, window.innerHeight - Math.round(vv.height + vv.offsetTop));
+      chatScreen.style.bottom = kb > 0 ? kb + 'px' : '';
+      if (kb > 0) {
+        const msgs = document.getElementById('messages');
+        if (msgs) msgs.scrollTop = msgs.scrollHeight;
+      }
+    });
+  }
+
+  window.visualViewport.addEventListener('resize', syncKeyboard);
+})();
+
 /* ════════════════════════════════════════════
    Firebase 설정
    👇 Firebase 콘솔에서 복사한 값으로 교체하세요
