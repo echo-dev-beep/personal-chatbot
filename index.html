@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
 <title>나의 이야기</title>
 <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Noto+Serif+KR:wght@300;400&display=swap" rel="stylesheet">
 
@@ -260,30 +260,6 @@ textarea::placeholder { color: var(--text-muted); }
 </div>
 
 <script>
-/* ════════════════════════════════════════════
-   가상 키보드 대응 (iOS / Android)
-════════════════════════════════════════════ */
-(function () {
-  if (!window.visualViewport) return;
-
-  const chatScreen = document.getElementById('screen-chat');
-  let rafId = null;
-
-  function onViewportChange() {
-    if (rafId) cancelAnimationFrame(rafId);
-    rafId = requestAnimationFrame(() => {
-      if (chatScreen.classList.contains('hidden')) return;
-      const vvh = window.visualViewport.height;
-      chatScreen.style.height = vvh + 'px';
-      const msgs = document.getElementById('messages');
-      if (msgs) msgs.scrollTop = msgs.scrollHeight;
-    });
-  }
-
-  window.visualViewport.addEventListener('resize', onViewportChange);
-  window.visualViewport.addEventListener('scroll', onViewportChange);
-})();
-
 /* ════════════════════════════════════════════
    Firebase 설정
    👇 Firebase 콘솔에서 복사한 값으로 교체하세요
